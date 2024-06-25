@@ -27,6 +27,25 @@ async function streamAIResponse(body: z.infer<typeof CompletionRequestBody>) {
   return reader;
 }
 
+const handleSearch = async (searchTerm: string) => {
+  // console.log("searchTerm", searchTerm)
+  // const results = await search(searchTerm);
+  const response = await fetch('/api/search', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ query: searchTerm }),
+  });
+
+  if (response.ok) {
+    const data = await response.json();
+    console.log(data)
+  } else {
+    console.error('Search request failed');
+  }
+};
+
 export default function Plugin() {
   const [completion, setCompletion] = useState("");
 
@@ -154,6 +173,12 @@ export default function Plugin() {
           className="mb-5 p-2 px-4 rounded bg-green-600 text-white hover:bg-green-700"
         >
           Generate Poem on Canvas
+        </button>
+        <button
+          onClick={() => handleSearch("hihi")}
+          className="mb-5 p-2 px-4 rounded bg-green-600 text-white hover:bg-green-700"
+        >
+          Generate Embedding
         </button>
       </div>
       {completion && (
