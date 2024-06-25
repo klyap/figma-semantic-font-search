@@ -1,7 +1,7 @@
 declare const SITE_URL: string;
 
 figma.showUI(`<script>window.location.href = '${SITE_URL}'</script>`, {
-  width: 700,
+  width: 300,
   height: 700,
 });
 
@@ -28,8 +28,8 @@ figma.ui.onmessage = async (message, props) => {
             typeof e === "string"
               ? e
               : e && typeof e === "object" && "message" in e
-              ? e.message
-              : null,
+                ? e.message
+                : null,
           id: message.id,
         });
       }

@@ -23,6 +23,7 @@
     "esbuild": "^0.18.12",
     "eslint": "8.45.0",
     "eslint-config-next": "13.4.10",
+    "lucide-react": "^0.396.0",
     "next": "13.4.10",
     "openai-edge": "^1.2.0",
     "postcss": "8.4.26",
