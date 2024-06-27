@@ -14,7 +14,9 @@ export const getFontCSSUrl = () => {
 
 export const getUniqueFontNames = () => {
   // @ts-ignore
-  const uniqueFontNames = [...new Set(figmaFonts.map(font => font.fontName.family))];
+  const fontNames = figmaFonts.map(font => font.fontName.family);
+  const uniqueFontNames = fontNames.filter((value, index, self) => self.indexOf(value) === index);
+
   const filteredFontNames = uniqueFontNames.filter(name => !name.startsWith('.') && !name.startsWith('?'));
   return filteredFontNames;
 }

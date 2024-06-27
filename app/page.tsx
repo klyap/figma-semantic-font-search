@@ -33,7 +33,7 @@ async function streamAIResponse(body: z.infer<typeof CompletionRequestBody>) {
 
 export default function Plugin() {
   const [completion, setCompletion] = useState("");
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState(getUniqueFontNames());
   const [searchTerm, setSearchTerm] = useState("");
 
   const handleSearch = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -56,109 +56,30 @@ export default function Plugin() {
     }
   };
 
-  // This function calls our API and handles the streaming response.
-  // This ends up building the text up and using React state to update the UI.
-  const onStreamToIFrame = async () => {
-    setCompletion("");
-    const layers = await getTextForSelection();
+  const handleGetResults = async (query: string) => {
+    return await handleFilter(query);
+  }
 
-    if (!layers.length) {
-      figmaAPI.run(async (figma) => {
-        figma.notify(
-          "Please select a layer with text in it to generate a poem.",
-          { error: true },
-        );
-      });
-      return;
-    }
-
-    const reader = await streamAIResponse({
-      layers,
-    });
-
-    let text = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-      text += value;
-      setCompletion(text);
-    }
-  };
-
-  // This is the same as above, but instead of updating React state, it adds the
-  // text to the Figma canvas.
-  const onStreamToCanvas = async () => {
-    const layers = await getTextForSelection();
-
-    if (!layers.length) {
-      figmaAPI.run(async (figma) => {
-        figma.notify(
-          "Please select a layer with text in it to generate a poem.",
-          { error: true },
-        );
-      });
-      return;
-    }
-
-    const reader = await streamAIResponse({
-      layers,
-    });
-
-    let text = "";
-    let nodeID: string | null = null;
-    const textPosition = await getTextOffset();
-
-    const createOrUpdateTextNode = async () => {
-      // figmaAPI.run is a helper that lets us run code in the figma plugin sandbox directly
-      // from the iframe without having to post messages back and forth. For more info,
-      // see /lib/figmaAPI.ts
-      //
-      // It is important to note that any variables that this function closes over must be
-      // specified in the second argument to figmaAPI.run. This is because the code is actually
-      // run in the figma plugin sandbox, not in the iframe.
-      nodeID = await figmaAPI.run(
-        async (figma, { nodeID, text, textPosition }) => {
-          let node = figma.getNodeById(nodeID ?? "");
-
-          // If the node doesn't exist, create it and position it to the right of the selection.
-          if (!node) {
-            node = figma.createText();
-            node.x = textPosition?.x ?? 0;
-            node.y = textPosition?.y ?? 0;
-          }
-
-          if (node.type !== "TEXT") {
-            return "";
-          }
-
-          const oldHeight = node.height;
-
-          await figma.loadFontAsync({ family: "Inter", style: "Medium" });
-          node.fontName = { family: "Inter", style: "Medium" };
-
-          node.characters = text;
-
-          // Scroll and zoom to the node if it's height changed (ex we've added a new line).
-          // We only do this when the height changes to reduce flickering.
-          if (oldHeight !== node.height) {
-            figma.viewport.scrollAndZoomIntoView([node]);
-          }
-
-          return node.id;
+  const handleFilter = async (searchTerm: string) => {
+    console.log("searchTerm", searchTerm)
+    if (searchTerm == "All") {
+      setResults(getUniqueFontNames())
+    } else {
+      const response = await fetch('/api/filter', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        { nodeID, text, textPosition },
-      );
-    };
+        body: JSON.stringify({ query: searchTerm }),
+      });
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data);
+        setResults(data);
+      } else {
+        console.error('Search request failed');
       }
-      text += value;
-      await createOrUpdateTextNode();
     }
   };
 
@@ -175,10 +96,6 @@ export default function Plugin() {
       });
       return;
     }
-
-    // const reader = await streamAIResponse({
-    //   layers,
-    // });
 
     let text = "";
     let nodeID: string | null = null;
@@ -201,16 +118,8 @@ export default function Plugin() {
           figma.currentPage.selection.forEach(
             async node => {
               if (node.type === 'TEXT') {
-                const oldHeight = node.height;
-
                 await figma.loadFontAsync({ family: fontName, style: fontStyle });
                 node.fontName = { family: fontName, style: fontStyle };
-
-                // Scroll and zoom to the node if it's height changed (ex we've added a new line).
-                // We only do this when the height changes to reduce flickering.
-                // if (oldHeight !== node.height) {
-                //   figma.viewport.scrollAndZoomIntoView([node]);
-                // }
 
                 nodeId = node.id;
               }
@@ -224,25 +133,53 @@ export default function Plugin() {
     await createOrUpdateTextNode(fontName, fontStyle);
   };
 
+  const fontCategories = [
+    "Sans Serif",
+    "Display",
+    "Serif",
+    "Handwriting",
+    "Monospace"
+  ]
+
   return (
     <div className="absolute w-full bg-white border">
       <link href={getFontCSSUrl()} rel="stylesheet"></link>
-      <div className="p-2 border-b">
+      {/* <div className="p-2 border-b">
         <div className="flex items-center p-1">
           <Sparkles className="h-4 w-4 text-gray-400 mr-2" />
-
           <input
             type="text"
-            placeholder="Search fonts"
+            placeholder="Search by vibe (coming soon!)"
             className="w-full outline-none"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={async (e) => {
+              setSearchTerm(e.target.value)
+              await handleGetResults(e.target.value)
+            }
+            }
           />
         </div>
+      </div> */}
+      <div className="flex space-x-2 mt-2 pb-2 border-b">
+        <select
+          className="mx-2 py-1 w-full"
+          onChange={(e) => handleGetResults(e.target.value)}
+        >
+          <option value={"All"} key={"All"}>
+            {"All categories"}
+          </option>
+          {fontCategories.map(categoryName =>
+            <option value={categoryName} key={categoryName}>
+              <div className="text-blue-500 bg-gray-200">
+                {categoryName}
+              </div>
+            </option>
+          )}
+        </select>
       </div>
       <ul className="max-h-90 overflow-auto">
         <div className="h-2"></div>
-        {getUniqueFontNames().map((fontObj) => {
+        {results.map((fontObj) => {
           const name = fontObj;
           const fontsWithPlain = ["Al Bayan", "Academy Engraved LET", "Party LET", "Savoye LET"]
           const style = fontsWithPlain.includes(name) ? "Plain" : "Regular";

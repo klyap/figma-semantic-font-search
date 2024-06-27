@@ -1,12 +1,17 @@
 {
-  "name": "ai-plugin-template",
-  "id": "ai-plugin-template",
+  "name": "Smart Font Search",
+  "id": "smart-font-search",
   "api": "1.0.0",
   "main": "dist/code.js",
   "enableProposedApi": false,
-  "editorType": ["figma", "figjam"],
+  "editorType": [
+    "figma",
+    "figjam"
+  ],
   "networkAccess": {
-    "allowedDomains": ["*"],
+    "allowedDomains": [
+      "*"
+    ],
     "reasoning": "Internet access for local development."
   }
 }
