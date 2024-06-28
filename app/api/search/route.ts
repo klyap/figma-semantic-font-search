@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 // @ts-ignore
 import PipelineSingleton from './pipeline.ts';
+import { fontMetadata } from '@/app/fonts-metadata.js';
 
 async function getEmbeddings(text: string) {
   //When called for the first time,
@@ -17,6 +18,11 @@ async function getEmbeddings(text: string) {
   return Array.from(result.data);
 }
 
+const getMockEmbeddings = (text: string) => {
+  // @ts-ignore
+  return Object.keys(fontMetadata).filter(fontName => fontMetadata[fontName].description.includes(text))
+}
+
 export async function POST(request: NextRequest) {
   // const text = request.nextUrl.searchParams.get('text');
   const req = await request.json()
@@ -28,7 +34,9 @@ export async function POST(request: NextRequest) {
     }, { status: 400 });
   }
 
-  const queryEmbedding = await getEmbeddings(text);
+  // const queryEmbedding = await getEmbeddings(text);
+  const queryEmbedding = getMockEmbeddings(text) || [];
+  console.log(queryEmbedding)
 
   // const supabaseUrl = process.env.SUPABASE_URL || "";
   // const supabaseKey = process.env.SUPABASE_KEY || "";
@@ -45,5 +53,5 @@ export async function POST(request: NextRequest) {
   // return documents;
 
 
-  return NextResponse.json(queryEmbedding);
+  return NextResponse.json({ data: queryEmbedding });
 }

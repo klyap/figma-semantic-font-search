@@ -35,30 +35,38 @@ export default function Plugin() {
   const [completion, setCompletion] = useState("");
   const [results, setResults] = useState(getUniqueFontNames());
   const [searchTerm, setSearchTerm] = useState("");
-
-  const handleSearch = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    console.log("searchTerm", searchTerm)
-    // const results = await search(searchTerm);
-    const response = await fetch('/api/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ query: searchTerm }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      setResults(data.data);
-    } else {
-      console.error('Search request failed');
+  const debounce = (func: any, delay: number) => {
+    let debounceTimer: any;
+    return function () {
+      // @ts-ignore
+      const context: any = this;
+      const args: any = arguments;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => func.apply(context, args), delay);
     }
-  };
-
-  const handleGetResults = async (query: string) => {
-    return await handleFilter(query);
   }
+
+  const handleSearch = debounce(async () => {
+    console.log("searchTerm", searchTerm)
+    if (searchTerm == "") {
+      setResults(getUniqueFontNames());
+    } else {
+      const response = await fetch('/api/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: searchTerm }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setResults(data.data);
+      } else {
+        console.error('Search request failed');
+      }
+    }
+  }, 300);
 
   const handleFilter = async (searchTerm: string) => {
     console.log("searchTerm", searchTerm)
@@ -135,54 +143,52 @@ export default function Plugin() {
 
   const fontCategories = [
     "Sans Serif",
-    "Display",
     "Serif",
+    "Display",
+    "Monospace",
     "Handwriting",
-    "Monospace"
   ]
 
   return (
     <div className="absolute w-full bg-white border">
       <link href={getFontCSSUrl()} rel="stylesheet"></link>
-      {/* <div className="p-2 border-b">
+      <div className="p-2 border-b">
         <div className="flex items-center p-1">
           <Sparkles className="h-4 w-4 text-gray-400 mr-2" />
           <input
             type="text"
-            placeholder="Search by vibe (coming soon!)"
+            placeholder="Search by vibe"
             className="w-full outline-none"
             value={searchTerm}
             onChange={async (e) => {
               setSearchTerm(e.target.value)
-              await handleGetResults(e.target.value)
+              await handleSearch()
             }
             }
           />
         </div>
-      </div> */}
+      </div>
       <div className="flex space-x-2 mt-2 pb-2 border-b">
         <select
           className="mx-2 py-1 w-full"
-          onChange={(e) => handleGetResults(e.target.value)}
+          onChange={(e) => handleFilter(e.target.value)}
         >
           <option value={"All"} key={"All"}>
             {"All categories"}
           </option>
           {fontCategories.map(categoryName =>
             <option value={categoryName} key={categoryName}>
-              <div className="text-blue-500 bg-gray-200">
-                {categoryName}
-              </div>
+              {categoryName}
             </option>
           )}
         </select>
       </div>
-      <ul className="max-h-90 overflow-auto">
+      <ul className="max-h-90 overflow-auto pb-2">
         <div className="h-2"></div>
         {results.map((fontObj) => {
           const name = fontObj;
           const fontsWithPlain = ["Al Bayan", "Academy Engraved LET", "Party LET", "Savoye LET"]
-          const style = fontsWithPlain.includes(name) ? "Plain" : "Regular";
+          let style = name.toLowerCase().includes(" mono") ? "monospace" : fontsWithPlain.includes(name) ? "Plain" : "Regular";
           // const name = fontObj.fontName.family;
           // const style = fontObj.fontName.style;
           return (
@@ -190,7 +196,7 @@ export default function Plugin() {
               key={name}
               className={`text-lg px-4 hover:bg-gray-100 cursor-pointer `}
               data-content={name}
-              style={{ fontFamily: `${name}` }}
+              style={{ fontFamily: `${name}, ${style}` }}
               onClick={() => onSetFont(name, style)}
             >
               <div className="flex items-center justify-between">
