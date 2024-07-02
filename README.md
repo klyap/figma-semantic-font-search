@@ -93,12 +93,12 @@ console.log(result); // "Page 1"
 
 A few things to note about this helper:
 
-1.  The code cannot reference any variables outside of the function unless they are passed as a parameter to the second argument. This is
-    because the code is stringified and sent to the plugin, and the plugin
-    evals it. The plugin has no access to the variables in the iframe.
-2.  The return value of the function must be JSON serializable. This is
-    because the result is sent back to the iframe via postMessage, which only
-    supports JSON.
+1. The code cannot reference any variables outside of the function unless they are passed as a parameter to the second argument. This is
+   because the code is stringified and sent to the plugin, and the plugin
+   evals it. The plugin has no access to the variables in the iframe.
+2. The return value of the function must be JSON serializable. This is
+   because the result is sent back to the iframe via postMessage, which only
+   supports JSON.
 
 ## Learn More
 

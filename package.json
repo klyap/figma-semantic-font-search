@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently -n plugin,next 'npm run build:plugin -- --watch --define:SITE_URL=\\\"http://localhost:3000\\\"' 'next dev'",
+    "dev-test": "concurrently -n plugin,next 'npm run build:plugin -- --watch --define:SITE_URL=\\\"$npm_package_config_siteURL\\\"' 'next dev'",
     "scrape": "ts-node -O \"{\\\"module\\\": \\\"commonjs\\\"}\" scripts/scrape-google-fonts.js",
     "embed": "ts-node-esm scripts/vectra.mjs",
     "start": "next start",
