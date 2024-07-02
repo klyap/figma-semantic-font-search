@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fontMetadata } from '../../fonts-metadata'
+import { fontMetadata } from '../../fonts-metadata.mjs'
 
 type FontMetadata = {
   description: string,

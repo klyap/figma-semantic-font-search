@@ -43,6 +43,6 @@
     "concurrently": "^8.2.0"
   },
   "config": {
-    "siteURL": "https://test-ai-plugin-template.vercel.app/"
+    "siteURL": "https://ai-plugin-template.vercel.app/"
   }
 }
