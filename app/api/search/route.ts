@@ -1,11 +1,11 @@
-// import { createClient } from '@supabase/supabase-js';
 
 import { NextRequest, NextResponse } from 'next/server'
 // @ts-ignore
 import PipelineSingleton from './pipeline.ts';
-import { fontMetadata } from '@/app/fonts-metadata.js';
+import embeddedData from '../../../vectra-embeddings/index.json'
+import similarity from 'compute-cosine-similarity'
 
-async function getEmbeddings(text: string) {
+async function getEmbeddingVector(text: string) {
   //When called for the first time,
   // this will load the pipeline and cache it for future use.
   // @ts-ignore
@@ -14,13 +14,67 @@ async function getEmbeddings(text: string) {
     pooling: 'mean',
     normalize: true,
   });
-  console.log(result);
   return Array.from(result.data);
 }
 
-const getMockEmbeddings = (text: string) => {
+async function search(query: string) {
+
+  const queryVector = await getEmbeddingVector(query)
   // @ts-ignore
-  return Object.keys(fontMetadata).filter(fontName => fontMetadata[fontName].description.includes(text))
+  const embeddings = embeddedData.items;
+  const uniqueEmbeddings = uniqueFontNames(embeddings);
+  // @ts-ignore
+  let results = []
+
+  // We need to await the promises returned by map before sorting
+  console.log("uniqueEmbeddings leng", uniqueEmbeddings.length)
+  const sortedList = await Promise.all(uniqueEmbeddings.map(async (a: any) => {
+    if (Array.isArray(a.vector)) {
+      // @ts-ignore
+      const score = await similarity(queryVector, a.vector) || 0;
+      const scoredMeta = { ...a.metadata, score }
+      return { ...a, metadata: scoredMeta }
+    }
+  }))
+  console.log("sortedList len", sortedList.length)
+
+  sortedList.sort((a: any, b: any) => {
+    return b.metadata.score - a.metadata.score
+  });
+
+  console.log("sortedList sorted len", sortedList.length)
+
+  // @ts-ignore
+  results = sortedList.filter((item: any) => item.metadata.score > 0.8);
+  console.log("results filtered len", results.length)
+
+  return results
+}
+
+const uniqueFontNames = (fonts: EmbeddingData[]) => {
+  const uniqueFonts: EmbeddingData[] = [];
+  const fontNames: string[] = [];
+
+  fonts.forEach((font) => {
+    if (!fontNames.includes(font.metadata.name)) {
+      fontNames.push(font.metadata.name);
+      uniqueFonts.push(font);
+    }
+  });
+
+  return uniqueFonts;
+};
+
+type FontMeta = {
+  name: string,
+  description: string,
+  category: string
+}
+
+type EmbeddingData = {
+  id: string,
+  metadata: FontMeta,
+  vector: number[]
 }
 
 export async function POST(request: NextRequest) {
@@ -34,24 +88,8 @@ export async function POST(request: NextRequest) {
     }, { status: 400 });
   }
 
-  // const queryEmbedding = await getEmbeddings(text);
-  const queryEmbedding = getMockEmbeddings(text) || [];
-  console.log(queryEmbedding)
-
-  // const supabaseUrl = process.env.SUPABASE_URL || "";
-  // const supabaseKey = process.env.SUPABASE_KEY || "";
-  // const supabase = createClient(supabaseUrl, supabaseKey);
-
-  // const documents = await supabase.rpc('match_documents', {
-  //   query_embedding: queryEmbedding, // Pass the embedding you want to compare
-  //   match_threshold: 0.6, // Choose an appropriate threshold for your data
-  //   match_count: 20, // Choose the number of matches
-  // });
-
-  // console.log("documents", documents)
-  // console.log(documents.map((row: Document) => `${row.affinity_org_name}, ${row.affinity_note_content}`))
-  // return documents;
-
-
-  return NextResponse.json({ data: queryEmbedding });
+  const results = await search(text);
+  const nameList = results.map((obj: EmbeddingData) => obj.metadata.name)
+  // console.log(nameList)
+  return NextResponse.json(nameList);
 }

@@ -61,7 +61,8 @@ export default function Plugin() {
 
       if (response.ok) {
         const data = await response.json();
-        setResults(data.data);
+        console.log(data);
+        setResults(data);
       } else {
         console.error('Search request failed');
       }
@@ -186,7 +187,7 @@ export default function Plugin() {
       <ul className="max-h-90 overflow-auto pb-2">
         <div className="h-2"></div>
         {results.map((fontObj) => {
-          const name = fontObj;
+          const name = fontObj
           const fontsWithPlain = ["Al Bayan", "Academy Engraved LET", "Party LET", "Savoye LET"]
           let style = name.toLowerCase().includes(" mono") ? "monospace" : fontsWithPlain.includes(name) ? "Plain" : "Regular";
           // const name = fontObj.fontName.family;
