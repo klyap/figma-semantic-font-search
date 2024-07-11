@@ -82,10 +82,12 @@ class FigmaAPI {
         },
         pluginId: "*",
       };
+      console.log("figmaAPI msg", msg);
 
       ["https://www.figma.com", "https://staging.figma.com"].forEach(
         (origin) => {
           try {
+            console.log("figmaAPI postMessage", msg, origin);
             parent.postMessage(msg, origin);
           } catch (e) {
             console.log("figmaAPI postMessage error", e)
