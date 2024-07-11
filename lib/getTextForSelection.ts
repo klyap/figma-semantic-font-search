@@ -1,6 +1,7 @@
 import { figmaAPI } from "@/lib/figmaAPI";
 
 export async function getTextForSelection() {
+  console.log("getTextForSelection")
   return await figmaAPI.run((figma) => {
     const { selection } = figma.currentPage;
 

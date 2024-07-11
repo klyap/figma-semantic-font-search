@@ -93,10 +93,12 @@ export default function Plugin() {
   };
 
   const onSetFont = async (fontName: string, fontStyle: string) => {
-    console.log("fontName", fontName)
+    console.log("onSetFont!", fontName)
     const layers = await getTextForSelection();
+    console.log("layers", layers)
 
     if (!layers.length) {
+      console.log("!layers.length", layers)
       figmaAPI.run(async (figma) => {
         figma.notify(
           "Please select a layer with text in it.",
@@ -128,6 +130,7 @@ export default function Plugin() {
             async node => {
               if (node.type === 'TEXT') {
                 await figma.loadFontAsync({ family: fontName, style: fontStyle });
+                console.log("figma.loadFontAsync", { family: fontName, style: fontStyle })
                 node.fontName = { family: fontName, style: fontStyle };
 
                 nodeId = node.id;
@@ -139,6 +142,8 @@ export default function Plugin() {
         { nodeID, text, textPosition, fontName, fontStyle },
       );
     };
+    console.log("calling", "createOrUpdateTextNode")
+
     await createOrUpdateTextNode(fontName, fontStyle);
   };
 

@@ -36,12 +36,15 @@ class FigmaAPI {
     params?: U,
   ): Promise<T> {
     return new Promise((resolve, reject) => {
+      console.log("figmaAPI")
+
       const id = this.id++;
       const cb = (event: MessageEvent) => {
         if (
           event.origin !== "https://www.figma.com" &&
           event.origin !== "https://staging.figma.com"
         ) {
+          console.log("Origin is ", event.origin)
           return;
         }
 
