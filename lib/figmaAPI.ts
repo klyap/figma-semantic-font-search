@@ -40,6 +40,8 @@ class FigmaAPI {
 
       const id = this.id++;
       const cb = (event: MessageEvent) => {
+        console.log("figmaAPI event", event)
+
         if (
           event.origin !== "https://www.figma.com" &&
           event.origin !== "https://staging.figma.com"
@@ -85,7 +87,9 @@ class FigmaAPI {
         (origin) => {
           try {
             parent.postMessage(msg, origin);
-          } catch { }
+          } catch (e) {
+            console.log("figmaAPI postMessage error", e)
+          }
         },
       );
     });
