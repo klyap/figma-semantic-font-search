@@ -82,7 +82,6 @@ class FigmaAPI {
         },
         pluginId: "*",
       };
-      console.log("figmaAPI msg", msg);
 
       ["https://www.figma.com", "https://staging.figma.com"].forEach(
         (origin) => {
