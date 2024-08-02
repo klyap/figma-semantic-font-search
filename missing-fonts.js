@@ -371,5 +371,5 @@
   "jsMath-cmmi10",
   "jsMath-cmr10",
   "jsMath-cmsy10",
-  "jsMath-cmti10"
-]
+  "jsMath-cmti10",
+];

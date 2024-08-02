@@ -36,17 +36,17 @@ class FigmaAPI {
     params?: U,
   ): Promise<T> {
     return new Promise((resolve, reject) => {
-      console.log("figmaAPI")
+      console.log("figmaAPI");
 
       const id = this.id++;
       const cb = (event: MessageEvent) => {
-        console.log("figmaAPI event", event)
+        console.log("figmaAPI event", event);
 
         if (
           event.origin !== "https://www.figma.com" &&
           event.origin !== "https://staging.figma.com"
         ) {
-          console.log("Origin is ", event.origin)
+          console.log("Origin is ", event.origin);
           return;
         }
 
@@ -89,7 +89,7 @@ class FigmaAPI {
             console.log("figmaAPI postMessage", msg, origin);
             parent.postMessage(msg, origin);
           } catch (e) {
-            console.log("figmaAPI postMessage error", e)
+            console.log("figmaAPI postMessage error", e);
           }
         },
       );

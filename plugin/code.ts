@@ -28,8 +28,8 @@ figma.ui.onmessage = async (message, props) => {
             typeof e === "string"
               ? e
               : e && typeof e === "object" && "message" in e
-                ? e.message
-                : null,
+              ? e.message
+              : null,
           id: message.id,
         });
       }

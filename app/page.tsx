@@ -7,7 +7,7 @@ import { CompletionRequestBody } from "@/lib/types";
 import { useState } from "react";
 import { z } from "zod";
 import { ListItem } from "./ListItem";
-import { Search, Sparkles } from 'lucide-react';
+import { Search, Sparkles } from "lucide-react";
 import { getFontCSSUrl, getUniqueFontNames } from "./utils";
 import { figmaFonts } from "./figma-fonts";
 
@@ -43,18 +43,18 @@ export default function Plugin() {
       const args: any = arguments;
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => func.apply(context, args), delay);
-    }
-  }
+    };
+  };
 
   const handleSearch = debounce(async () => {
-    console.log("searchTerm", searchTerm)
+    console.log("searchTerm", searchTerm);
     if (searchTerm == "") {
       setResults(getUniqueFontNames());
     } else {
-      const response = await fetch('/api/search', {
-        method: 'POST',
+      const response = await fetch("/api/search", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ query: searchTerm }),
       });
@@ -64,20 +64,20 @@ export default function Plugin() {
         console.log(data);
         setResults(data);
       } else {
-        console.error('Search request failed');
+        console.error("Search request failed");
       }
     }
   }, 300);
 
   const handleFilter = async (searchTerm: string) => {
-    console.log("searchTerm", searchTerm)
+    console.log("searchTerm", searchTerm);
     if (searchTerm == "All") {
-      setResults(getUniqueFontNames())
+      setResults(getUniqueFontNames());
     } else {
-      const response = await fetch('/api/filter', {
-        method: 'POST',
+      const response = await fetch("/api/filter", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ query: searchTerm }),
       });
@@ -87,23 +87,20 @@ export default function Plugin() {
         console.log(data);
         setResults(data);
       } else {
-        console.error('Search request failed');
+        console.error("Search request failed");
       }
     }
   };
 
   const onSetFont = async (fontName: string, fontStyle: string) => {
-    console.log("onSetFont!", fontName)
+    console.log("onSetFont!", fontName);
     const layers = await getTextForSelection();
-    console.log("layers", layers)
+    console.log("layers", layers);
 
     if (!layers.length) {
-      console.log("!layers.length", layers)
+      console.log("!layers.length", layers);
       figmaAPI.run(async (figma) => {
-        figma.notify(
-          "Please select a layer with text in it.",
-          { error: true },
-        );
+        figma.notify("Please select a layer with text in it.", { error: true });
       });
       return;
     }
@@ -112,7 +109,10 @@ export default function Plugin() {
     let nodeID: string | null = null;
     const textPosition = await getTextOffset();
 
-    const createOrUpdateTextNode = async (fontName: string, fontStyle: string) => {
+    const createOrUpdateTextNode = async (
+      fontName: string,
+      fontStyle: string,
+    ) => {
       // figmaAPI.run is a helper that lets us run code in the figma plugin sandbox directly
       // from the iframe without having to post messages back and forth. For more info,
       // see /lib/figmaAPI.ts
@@ -120,29 +120,30 @@ export default function Plugin() {
       // It is important to note that any variables that this function closes over must be
       // specified in the second argument to figmaAPI.run. This is because the code is actually
       // run in the figma plugin sandbox, not in the iframe.
-      console.log("createOrUpdateTextNode fontName", fontName)
+      console.log("createOrUpdateTextNode fontName", fontName);
 
       nodeID = await figmaAPI.run(
         async (figma, { nodeID, text, textPosition, fontName, fontStyle }) => {
           // let node = figma.getNodeById(nodeID ?? "");
           let nodeId = null;
-          figma.currentPage.selection.forEach(
-            async node => {
-              if (node.type === 'TEXT') {
-                await figma.loadFontAsync({ family: fontName, style: fontStyle });
-                console.log("figma.loadFontAsync", { family: fontName, style: fontStyle })
-                node.fontName = { family: fontName, style: fontStyle };
+          figma.currentPage.selection.forEach(async (node) => {
+            if (node.type === "TEXT") {
+              await figma.loadFontAsync({ family: fontName, style: fontStyle });
+              console.log("figma.loadFontAsync", {
+                family: fontName,
+                style: fontStyle,
+              });
+              node.fontName = { family: fontName, style: fontStyle };
 
-                nodeId = node.id;
-              }
+              nodeId = node.id;
             }
-          )
-          return nodeId
+          });
+          return nodeId;
         },
         { nodeID, text, textPosition, fontName, fontStyle },
       );
     };
-    console.log("calling", "createOrUpdateTextNode")
+    console.log("calling", "createOrUpdateTextNode");
 
     await createOrUpdateTextNode(fontName, fontStyle);
   };
@@ -153,7 +154,7 @@ export default function Plugin() {
     "Display",
     "Monospace",
     "Handwriting",
-  ]
+  ];
 
   return (
     <div className="absolute w-full bg-white border">
@@ -167,10 +168,9 @@ export default function Plugin() {
             className="w-full outline-none"
             value={searchTerm}
             onChange={async (e) => {
-              setSearchTerm(e.target.value)
-              await handleSearch()
-            }
-            }
+              setSearchTerm(e.target.value);
+              await handleSearch();
+            }}
           />
         </div>
       </div>
@@ -182,19 +182,28 @@ export default function Plugin() {
           <option value={"All"} key={"All"}>
             {"All categories"}
           </option>
-          {fontCategories.map(categoryName =>
+          {fontCategories.map((categoryName) => (
             <option value={categoryName} key={categoryName}>
               {categoryName}
             </option>
-          )}
+          ))}
         </select>
       </div>
       <ul className="max-h-90 overflow-auto pb-2">
         <div className="h-2"></div>
         {results.map((fontObj) => {
-          const name = fontObj
-          const fontsWithPlain = ["Al Bayan", "Academy Engraved LET", "Party LET", "Savoye LET"]
-          let style = name.toLowerCase().includes(" mono") ? "monospace" : fontsWithPlain.includes(name) ? "Plain" : "Regular";
+          const name = fontObj;
+          const fontsWithPlain = [
+            "Al Bayan",
+            "Academy Engraved LET",
+            "Party LET",
+            "Savoye LET",
+          ];
+          let style = name.toLowerCase().includes(" mono")
+            ? "monospace"
+            : fontsWithPlain.includes(name)
+            ? "Plain"
+            : "Regular";
           // const name = fontObj.fontName.family;
           // const style = fontObj.fontName.style;
           return (
@@ -209,7 +218,7 @@ export default function Plugin() {
                 <span>{name}</span>
               </div>
             </li>
-          )
+          );
         })}
       </ul>
     </div>
