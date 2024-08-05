@@ -5,31 +5,10 @@ import { getTextForSelection } from "@/lib/getTextForSelection";
 import { getTextOffset } from "@/lib/getTextOffset";
 import { CompletionRequestBody } from "@/lib/types";
 import { useState } from "react";
-import { z } from "zod";
 import { ListItem } from "./ListItem";
 import { Search, Sparkles } from "lucide-react";
 import { getFontCSSUrl, getUniqueFontNames } from "./utils";
 import { figmaFonts } from "./figma-fonts";
-
-// This function calls our API and lets you read each character as it comes in.
-// To change the prompt of our AI, go to `app/api/completion.ts`.
-async function streamAIResponse(body: z.infer<typeof CompletionRequestBody>) {
-  const resp = await fetch("/api/completion", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-
-  const reader = resp.body?.pipeThrough(new TextDecoderStream()).getReader();
-
-  if (!reader) {
-    throw new Error("Error reading response");
-  }
-
-  return reader;
-}
 
 export default function Plugin() {
   const [completion, setCompletion] = useState("");
@@ -46,8 +25,9 @@ export default function Plugin() {
     };
   };
 
-  const handleSearch = debounce(async () => {
+  const handleSearch = debounce(async (searchTerm: string) => {
     console.log("searchTerm", searchTerm);
+
     if (searchTerm == "") {
       setResults(getUniqueFontNames());
     } else {
@@ -93,21 +73,16 @@ export default function Plugin() {
   };
 
   const onSetFont = async (fontName: string, fontStyle: string) => {
-    console.log("onSetFont!", fontName);
     const layers = await getTextForSelection();
-    console.log("layers", layers);
 
     if (!layers.length) {
-      console.log("!layers.length", layers);
       figmaAPI.run(async (figma) => {
         figma.notify("Please select a layer with text in it.", { error: true });
       });
       return;
     }
 
-    let text = "";
     let nodeID: string | null = null;
-    const textPosition = await getTextOffset();
 
     const createOrUpdateTextNode = async (
       fontName: string,
@@ -120,10 +95,9 @@ export default function Plugin() {
       // It is important to note that any variables that this function closes over must be
       // specified in the second argument to figmaAPI.run. This is because the code is actually
       // run in the figma plugin sandbox, not in the iframe.
-      console.log("createOrUpdateTextNode fontName", fontName);
 
       nodeID = await figmaAPI.run(
-        async (figma, { nodeID, text, textPosition, fontName, fontStyle }) => {
+        async (figma, { fontName, fontStyle }) => {
           // let node = figma.getNodeById(nodeID ?? "");
           let nodeId = null;
           figma.currentPage.selection.forEach(async (node) => {
@@ -140,10 +114,9 @@ export default function Plugin() {
           });
           return nodeId;
         },
-        { nodeID, text, textPosition, fontName, fontStyle },
+        { fontName, fontStyle },
       );
     };
-    console.log("calling", "createOrUpdateTextNode");
 
     await createOrUpdateTextNode(fontName, fontStyle);
   };
@@ -158,7 +131,7 @@ export default function Plugin() {
 
   return (
     <div className="absolute w-full bg-white border">
-      <link href={getFontCSSUrl()} rel="stylesheet"></link>
+      <link href={getFontCSSUrl(results)} rel="stylesheet"></link>
       <div className="p-2 border-b">
         <div className="flex items-center p-1">
           <Sparkles className="h-4 w-4 text-gray-400 mr-2" />
@@ -169,7 +142,8 @@ export default function Plugin() {
             value={searchTerm}
             onChange={async (e) => {
               setSearchTerm(e.target.value);
-              await handleSearch();
+              // @ts-ignore
+              await handleSearch(e.target.value);
             }}
           />
         </div>
@@ -202,8 +176,8 @@ export default function Plugin() {
           let style = name.toLowerCase().includes(" mono")
             ? "monospace"
             : fontsWithPlain.includes(name)
-            ? "Plain"
-            : "Regular";
+              ? "Plain"
+              : "Regular";
           // const name = fontObj.fontName.family;
           // const style = fontObj.fontName.style;
           return (

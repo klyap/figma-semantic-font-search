@@ -17,38 +17,31 @@ async function getEmbeddingVector(text: string) {
 }
 
 async function search(query: string) {
+  console.log("query", query)
   const queryVector = await getEmbeddingVector(query);
   // @ts-ignore
   const embeddings = embeddedData.items;
   const uniqueEmbeddings = uniqueFontNames(embeddings);
-  // @ts-ignore
-  let results = [];
 
-  // We need to await the promises returned by map before sorting
-  console.log("uniqueEmbeddings leng", uniqueEmbeddings.length);
-  const sortedList = await Promise.all(
+  let sortedList = (await Promise.all(
     uniqueEmbeddings.map(async (a: any) => {
       if (Array.isArray(a.vector)) {
         // @ts-ignore
         const score = (await similarity(queryVector, a.vector)) || 0;
-        const scoredMeta = { ...a.metadata, score };
-        return { ...a, metadata: scoredMeta };
+        if (score > 0.8) {
+          const scoredMeta = { ...a.metadata, score };
+          return { ...a, metadata: scoredMeta };
+        }
       }
     }),
-  );
-  console.log("sortedList len", sortedList.length);
+  )).filter(Boolean);
 
   sortedList.sort((a: any, b: any) => {
     return b.metadata.score - a.metadata.score;
   });
-
   console.log("sortedList sorted len", sortedList.length);
 
-  // @ts-ignore
-  results = sortedList.filter((item: any) => item.metadata.score > 0.8);
-  console.log("results filtered len", results.length);
-
-  return results;
+  return sortedList;
 }
 
 const uniqueFontNames = (fonts: EmbeddingData[]) => {

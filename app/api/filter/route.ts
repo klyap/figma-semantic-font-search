@@ -9,12 +9,12 @@ type FontMetadata = {
 export async function POST(request: NextRequest) {
   // const text = request.nextUrl.searchParams.get('text');
   const req = await request.json();
-  const text = req.query;
-  console.log(req, text);
-  if (!text) {
+  const category = req.query;
+  console.log(req, category);
+  if (!category) {
     return NextResponse.json(
       {
-        error: "Missing text parameter",
+        error: "Missing category parameter",
       },
       { status: 400 },
     );
@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
 
   // @ts-ignore
   const matchingFonts = Object.keys(fontMetadata).filter(
-    (fontName: string) => fontMetadata[fontName].category === text,
+    // @ts-ignore
+    (fontName: string) => fontMetadata[fontName].category === category,
   );
   return NextResponse.json(matchingFonts);
 }

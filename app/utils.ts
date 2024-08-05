@@ -1,10 +1,12 @@
 import { figmaFonts } from "./figma-fonts";
-export const getFontCSSUrl = () => {
-  const fontNamesFull = getUniqueFontNames();
-  // Doesn't work after a certain number of fonts somehow, so limiting to 50 for now
-  const fontNames = fontNamesFull.slice(0, 50);
 
-  let fontURLParams = fontNames.map((name) => {
+export const getFontCSSUrl = (fontName: any) => {
+  const fontNamesFull = fontName || getUniqueFontNames();
+  // Doesn't work after a certain number of fonts somehow, so limiting to 50 for now
+  const fontNames = fontNamesFull.slice(0, 200);
+
+  console.log("fontNames", fontNames)
+  let fontURLParams = fontNames.map((name: string) => {
     let formattedName = name.replace(/ /g, "+");
     return `family=${formattedName}`;
   });
