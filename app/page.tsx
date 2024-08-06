@@ -148,7 +148,7 @@ export default function Plugin() {
           />
         </div>
       </div>
-      <div className="flex space-x-2 mt-2 pb-2 border-b">
+      {/* <div className="flex space-x-2 mt-2 pb-2 border-b">
         <select
           className="mx-2 py-1 w-full"
           onChange={(e) => handleFilter(e.target.value)}
@@ -162,7 +162,7 @@ export default function Plugin() {
             </option>
           ))}
         </select>
-      </div>
+      </div> */}
       <ul className="max-h-90 overflow-auto pb-2">
         <div className="h-2"></div>
         {results.map((fontObj) => {
