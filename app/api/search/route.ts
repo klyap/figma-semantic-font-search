@@ -4,6 +4,18 @@ import PipelineSingleton from "./pipeline.ts";
 import embeddedData from "../../../vectra-embeddings/index.json";
 import similarity from "compute-cosine-similarity";
 
+type FontMeta = {
+  name: string;
+  description: string;
+  category: string;
+};
+
+type EmbeddingData = {
+  id: string;
+  metadata: FontMeta;
+  vector: number[];
+};
+
 async function getEmbeddingVector(text: string) {
   //When called for the first time,
   // this will load the pipeline and cache it for future use.
@@ -39,7 +51,6 @@ async function search(query: string) {
   sortedList.sort((a: any, b: any) => {
     return b.metadata.score - a.metadata.score;
   });
-  console.log("sortedList sorted len", sortedList.length);
 
   return sortedList;
 }
@@ -58,18 +69,6 @@ const uniqueFontNames = (fonts: EmbeddingData[]) => {
   return uniqueFonts;
 };
 
-type FontMeta = {
-  name: string;
-  description: string;
-  category: string;
-};
-
-type EmbeddingData = {
-  id: string;
-  metadata: FontMeta;
-  vector: number[];
-};
-
 export async function POST(request: NextRequest) {
   // const text = request.nextUrl.searchParams.get('text');
   const req = await request.json();
@@ -86,6 +85,5 @@ export async function POST(request: NextRequest) {
 
   const results = await search(text);
   const nameList = results.map((obj: EmbeddingData) => obj.metadata.name);
-  // console.log(nameList)
   return NextResponse.json(nameList);
 }

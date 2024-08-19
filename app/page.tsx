@@ -2,16 +2,11 @@
 
 import { figmaAPI } from "@/lib/figmaAPI";
 import { getTextForSelection } from "@/lib/getTextForSelection";
-import { getTextOffset } from "@/lib/getTextOffset";
-import { CompletionRequestBody } from "@/lib/types";
 import { useState } from "react";
-import { ListItem } from "./ListItem";
-import { Search, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { getFontCSSUrl, getUniqueFontNames } from "./utils";
-import { figmaFonts } from "./figma-fonts";
 
 export default function Plugin() {
-  const [completion, setCompletion] = useState("");
   const [results, setResults] = useState(getUniqueFontNames());
   const [searchTerm, setSearchTerm] = useState("");
   const debounce = (func: any, delay: number) => {

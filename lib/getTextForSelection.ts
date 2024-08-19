@@ -3,7 +3,6 @@ import { figmaAPI } from "@/lib/figmaAPI";
 export async function getTextForSelection() {
   return await figmaAPI.run((figma) => {
     const { selection } = figma.currentPage;
-    console.log("getTextForSelection", selection.length);
 
     const getTextForNode = (node: SceneNode) => {
       if (node.type === "TEXT") {
